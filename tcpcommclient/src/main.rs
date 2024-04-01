@@ -1,33 +1,8 @@
-use async_trait::async_trait;
-use serde::{Deserialize, Serialize};
-use std::{str, time};
+use std::time;
 
 mod net;
 
-type ErrorMessage = std::string::String;
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct Message {
-    sender: String,
-    content: String,
-}
-
-#[async_trait]
-trait ALTENChatter {
-    async fn write_message(&mut self, message: &Message) -> Result<(), ErrorMessage>;
-    async fn read_message(&mut self) -> Result<Message, ErrorMessage>;
-}
-
-#[async_trait]
-impl ALTENChatter for net::client::Client {
-    async fn write_message(&mut self, message: &Message) -> Result<(), ErrorMessage> {
-        todo!();
-    }
-
-    async fn read_message(&mut self) -> Result<Message, ErrorMessage> {
-        todo!()
-    }
-}
+type ErrorMessage = String;
 
 #[tokio::main]
 async fn main() -> Result<(), ErrorMessage> {
@@ -35,24 +10,32 @@ async fn main() -> Result<(), ErrorMessage> {
 }
 
 async fn main_loop() -> Result<(), ErrorMessage> {
-    let remote_address = "jansuun.tech:80";
+    let remote_address = "playground.foxlabs.nl:8080";
     let mut client = net::client::Client::new(remote_address).await?;
 
-    let msg = Message {
-        sender: String::from("Your-Name"),
-        content: String::from("AAAA"),
-    };
-
     loop {
-        // Part 1, send a message via the client interface. Can you get your message on the screen? 
-        // Receive the reply from the server to print, it will tell you if you miss something in your message
+        // TCP challenge, send a message via the client interface to the server. Can you get your
+        // message displayed on the screen?
+        // Do use '.await?' to ensure the function gets executed.
 
-        // Part 2, implement these functions in the trait
+        let message = r#"{}"#;
+
+        // After sending, receive the reply from the server to print, it will tell you if you miss something in your message
+        let reply = client.read().await?;
+        println!("Received: {:?}", reply);
+
+        // Extra challenge, can you send some struct?
+        // Modify the json_client in src/net/json_client.rs to serialize and deserialize messages
+        // let msg = net::json_client::Message {
+        //     sender: String::from("Your-Name"),
+        //     content: String::from("AAAA"),
+        // };
+
         // client.write_message(&msg).await?;
         // let reply = client.read_message().await?;
         // println!("Received: {:?}", reply);
 
         let ten_seconds = time::Duration::from_secs(10);
-        std::thread::sleep(ten_seconds);
+        tokio::time::sleep(ten_seconds).await;
     }
 }
